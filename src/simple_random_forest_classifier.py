@@ -99,7 +99,7 @@ if __name__ == '__main__':
         LR_pipeline = Pipeline([
             #("MinMax Scaling", MinMaxScaler()),
             ("Standard Scaler Scaling", StandardScaler()),
-            ("Random Forest Classification", LogisticRegression())
+            ("Logistic Regression Classification", LogisticRegression())
         ])
 
         # now, let us train a basic random forest classifier
