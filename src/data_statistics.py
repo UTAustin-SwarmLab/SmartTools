@@ -16,14 +16,16 @@ from sklearn.metrics import accuracy_score
 # helper function to extract key columns from the pandas dataframes
 
 def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
-	x_df = df[x_features_columns]
-	x_np = x_df.to_numpy()
+    x_df = df[x_features_columns]
+    x_np = x_df.to_numpy()
+    # get the output column we want to predict
+    y_df = df[y_features_columns]
+    y_np = y_df.to_numpy()
+    # assert the x and y dataframes do NOT have any null or NaN entries
+    assert(x_df.isnull().sum().sum() == 0)
+    assert(y_df.isnull().sum().sum() == 0)
 
-	# get the output column we want to predict
-	y_df = df[y_features_columns]
-	y_np = y_df.to_numpy()
-
-	return x_np, y_np, x_df, y_df
+    return x_np, y_np, x_df, y_df
 
 
 if __name__ == '__main__':
