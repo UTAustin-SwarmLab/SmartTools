@@ -12,6 +12,8 @@ from textfile_utils import *
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.pipeline import Pipeline
 
 # helper function to extract key columns from the pandas dataframes
 
@@ -69,18 +71,29 @@ if __name__ == '__main__':
     # get all columns that are inputs to our model
     x_features_columns = [colname for colname in list(train_df) if colname not in ['Unnamed: 0', 'Activity', 'Subject Number', 'Trial']]
 
-    y_features_columns = ['Activity']
+    for y_features_columns in ['Activity', 'Subject Number']:
 
-    # repeat key column extraction for train and val data
-    train_x_np, train_y_np, train_x_df, train_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns='Activity')
+        # repeat key column extraction for train and val data
+        train_x_np, train_y_np, train_x_df, train_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns=y_features_columns)
 
-    val_x_np, val_y_np, val_x_df, val_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns='Activity')
 
-    # now, let us train a basic random forest classifier WITHOUT data normalization
-    ########################################################################
-    clf = RandomForestClassifier().fit(train_x_np,train_y_np)
-    prediction= clf.predict(val_x_np)
-    accuracy_score = accuracy_score(y_val, prediction)*100
-    print('accuracy: ', accuracy_score)
+        val_x_np, val_y_np, val_x_df, val_y_df = get_xy_numpy(val_df, x_features_columns, y_features_columns=y_features_columns)
 
+        # Define the pipeline for scaling and model fitting
+        pipeline = Pipeline([
+            ("MinMax Scaling", MinMaxScaler()),
+            ("Random Forest Classification", RandomForestClassifier())
+        ])
+
+
+        # now, let us train a basic random forest classifier WITHOUT data normalization
+        ########################################################################
+        clf = pipeline.fit(train_x_np,train_y_np)
+        prediction= pipeline.predict(val_x_np)
+        accuracy_percent = accuracy_score(val_y_np, prediction)*100
+
+        print(' ')
+        print('y_features_columns: ', y_features_columns)
+        print('accuracy: ', accuracy_percent)
+        print(' ')
 
