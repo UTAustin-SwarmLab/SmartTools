@@ -10,6 +10,9 @@ sys.path.append(UTILS_DIR)
 from plotting_utils import *
 from textfile_utils import *
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
 # helper function to extract key columns from the pandas dataframes
 
 def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
@@ -70,4 +73,12 @@ if __name__ == '__main__':
     train_x_np, train_y_np, train_x_df, train_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns='Activity')
 
     val_x_np, val_y_np, val_x_df, val_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns='Activity')
+
+    # now, let us train a basic random forest classifier WITHOUT data normalization
+    ########################################################################
+    clf = RandomForestClassifier().fit(train_x_np,train_y_np)
+    prediction= clf.predict(val_x_np)
+    accuracy_score = accuracy_score(y_val, prediction)*100
+    print('accuracy: ', accuracy_score)
+
 
