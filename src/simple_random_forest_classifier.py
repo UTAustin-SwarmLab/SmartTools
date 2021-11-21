@@ -4,11 +4,10 @@ from collections import OrderedDict
 import argparse
 
 # generic plotting utils - always use and modify these
-UTILS_DIR=os.environ['UTILS_DIR']
-sys.path.append(UTILS_DIR)
-
-from plotting_utils import *
-from textfile_utils import *
+# UTILS_DIR=os.environ['UTILS_DIR']
+# sys.path.append(UTILS_DIR)
+# from plotting_utils import *
+# from textfile_utils import *
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -71,7 +70,13 @@ if __name__ == '__main__':
     # get all columns that are inputs to our model
     x_features_columns = [colname for colname in list(train_df) if colname not in ['Unnamed: 0', 'Activity', 'Subject Number', 'Trial']]
 
-    for y_features_columns in ['Activity', 'Subject Number']:
+    # try different y columns
+    # first, how well can we predict the activity?
+    # then, can we predict the subject
+    # then, we can predict the trial number
+    # the first should be high, second and third should be low
+
+    for y_features_columns in ['Activity', 'Subject Number', 'Trial']:
 
         # repeat key column extraction for train and val data
         train_x_np, train_y_np, train_x_df, train_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns=y_features_columns)
