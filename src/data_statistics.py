@@ -10,6 +10,19 @@ sys.path.append(UTILS_DIR)
 from plotting_utils import *
 from textfile_utils import *
 
+# helper function to extract key columns from the pandas dataframes
+
+def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
+	x_df = df[x_features_columns]
+	x_np = x_df.to_numpy()
+
+	# get the output column we want to predict
+	y_df = df[y_features_columns]
+	y_np = y_df.to_numpy()
+
+	return x_np, y_np, x_df, y_df
+
+
 if __name__ == '__main__':
 
     # Pull arguments from command line.
@@ -22,7 +35,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Load into dataframes
+    ########################################################################
+    # Load into dataframes and do some basic stats
     train_df = pandas.read_csv(args.train_csv)
     val_df = pandas.read_csv(args.val_csv)
     # write the shapes of the dataframes
@@ -44,4 +58,16 @@ if __name__ == '__main__':
 	# 3.0    526
 	# Name: Activity, dtype: int64
 
+    # get a numpy array of X and Y data
+    ########################################################################
+
+    # get all columns that are inputs to our model
+    x_features_columns = [colname for colname in list(train_df) if colname not in ['Unnamed: 0', 'Activity', 'Subject Number', 'Trial']]
+
+    y_features_columns = ['Activity']
+
+    # repeat key column extraction for train and val data
+    train_x_np, train_y_np, train_x_df, train_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns='Activity')
+
+    val_x_np, val_y_np, val_x_df, val_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns='Activity')
 
