@@ -13,6 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
 
 # helper function to extract key columns from the pandas dataframes
 
@@ -85,20 +86,44 @@ if __name__ == '__main__':
         val_x_np, val_y_np, val_x_df, val_y_df = get_xy_numpy(val_df, x_features_columns, y_features_columns=y_features_columns)
 
         # Define the pipeline for scaling and model fitting
-        pipeline = Pipeline([
-            ("MinMax Scaling", MinMaxScaler()),
+		# RF stands for random forest
+        RF_pipeline = Pipeline([
+            #("MinMax Scaling", MinMaxScaler()),
+            ("Standard Scaler Scaling", StandardScaler()),
             ("Random Forest Classification", RandomForestClassifier())
         ])
 
 
-        # now, let us train a basic random forest classifier WITHOUT data normalization
+        # Define the pipeline for scaling and model fitting
+		# LR stands for logistic regression
+        LR_pipeline = Pipeline([
+            #("MinMax Scaling", MinMaxScaler()),
+            ("Standard Scaler Scaling", StandardScaler()),
+            ("Random Forest Classification", LogisticRegression())
+        ])
+
+        # now, let us train a basic random forest classifier
         ########################################################################
-        clf = pipeline.fit(train_x_np,train_y_np)
-        prediction= pipeline.predict(val_x_np)
-        accuracy_percent = accuracy_score(val_y_np, prediction)*100
+        clf = RF_pipeline.fit(train_x_np,train_y_np)
+        prediction= RF_pipeline.predict(val_x_np)
+        RF_accuracy_percent = accuracy_score(val_y_np, prediction)*100
 
         print(' ')
         print('y_features_columns: ', y_features_columns)
-        print('accuracy: ', accuracy_percent)
+        print('RF accuracy: ', RF_accuracy_percent)
         print(' ')
+
+
+        ## now, let us train a basic random forest classifier
+        #########################################################################
+        clf = LR_pipeline.fit(train_x_np,train_y_np)
+        prediction= LR_pipeline.predict(val_x_np)
+        LR_accuracy_percent = accuracy_score(val_y_np, prediction)*100
+
+        print(' ')
+        print('y_features_columns: ', y_features_columns)
+        print('LR accuracy: ', LR_accuracy_percent)
+        print(' ')
+
+
 
