@@ -36,9 +36,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='plot sensor data')
 
     # where to read data
-    parser.add_argument('--train_csv', type=str, default='../processed_data/OL50_10secframe_Proccessed_train_Xy_Matrix.csv')
+    parser.add_argument('--train_csv', type=str, default='../processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Train_Xy_Matrix.csv')
 
-    parser.add_argument('--val_csv', type=str, default='../processed_data/OL50_10secframe_Proccessed_val_Xy_Matrix.csv')
+    parser.add_argument('--val_csv', type=str, default='../processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Validate_Xy_Matrix.csv')
+
 
     args = parser.parse_args()
 
