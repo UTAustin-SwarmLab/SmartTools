@@ -14,11 +14,8 @@ import argparse
 # from plotting_utils import *
 # from textfile_utils import *
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
+import torch
 
 # helper function to extract key columns from the pandas dataframes
 
@@ -100,18 +97,37 @@ if __name__ == '__main__':
     # use the SAME transformation on the test data
     val_x_np_scaled = FittedScaler.transform(val_x_np)
 
+    # now, create a pytorch dataloader for the numpy scaled data before feeding it into a DNN
+    ########################################################################
 
-    RF_pipeline = Pipeline([
-        ("Random Forest Classification", RandomForestClassifier())
-    ])
+    # min, max, mean etc.
+    num_features = 10
 
-    # SANITY CHECK - see if manually scaled data works for RF
-    clf = RF_pipeline.fit(train_x_np_scaled,train_y_np)
-    prediction= RF_pipeline.predict(val_x_np_scaled)
-    RF_accuracy_percent = accuracy_score(val_y_np, prediction)*100
+    num_sensors = int(len(x_features_columns)/num_features)
+
+    # first, convert the SCALED training data to a pytorch tensor
+    torch_train_x_tensor = torch.tensor(train_x_np_scaled)
+    torch_train_y_tensor = torch.tensor(train_y_np)
+
+    torch_val_x_tensor = torch.tensor(val_x_np_scaled)
+    torch_val_y_tensor = torch.tensor(val_y_np)
 
     print(' ')
-    print('y_features_columns: ', y_features_columns)
-    print('RF accuracy: ', RF_accuracy_percent)
+    print('training tensors: ')
+    print(torch_train_x_tensor.shape, torch_train_y_tensor.shape)
     print(' ')
+
+    print(' ')
+    print('val tensors: ')
+    print(torch_val_x_tensor.shape, torch_val_y_tensor.shape)
+    print(' ')
+
+	# current outputs
+	# training tensors:
+	# torch.Size([2160, 110]) torch.Size([2160])
+
+	# val tensors:
+	# torch.Size([720, 110]) torch.Size([720])
+
+
 
