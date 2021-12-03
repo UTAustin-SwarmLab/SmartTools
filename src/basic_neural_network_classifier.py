@@ -184,15 +184,18 @@ if __name__ == '__main__':
     PLOT_DIR = SCRATCH_DIR + '/plots/'
     remove_and_create_dir(PLOT_DIR)
 
+    MODEL_DIR = SCRATCH_DIR + '/models/'
+    remove_and_create_dir(MODEL_DIR)
+
     train_options = {"train_loader": train_loader,
                      "val_loader": val_loader,
-                     "num_epochs": 50,
+                     "num_epochs": 5,
                      "batch_size": 64,
                      "learning_rate": 1e-3,
                      "output_freq": 1,
                      "checkpoint_freq": 5,
-                     "save_model": False,
-                     "model_save_path": None,
+                     "save_model": True,
+                     "model_save_path": MODEL_DIR,
                      "plot_dir": PLOT_DIR,
                      "model_name": 'ConvNet Tool Activity Classifier'}
 
@@ -287,12 +290,11 @@ if __name__ == '__main__':
     plt.savefig(train_options['plot_dir'] + '/' + model_name)
     plt.close()
 
-    #if train_options["save_model"]:
-    #    model_path = train_options["model_save_path"] + model_name + '.pt'
-    #    print('model_path: ', model_path)
+    if train_options["save_model"]:
+        model_path = train_options["model_save_path"] + model_name + '.pt'
+        print('model_path: ', model_path)
 
-    #    model_save_dict = {'epoch': i, 'model_state_dict': model.state_dict(), \
-    #        'optimizer_state_dict': optimizer.state_dict()}
+        model_save_dict = {'epoch': i, 'model_state_dict': model.state_dict(), \
+            'optimizer_state_dict': optimizer.state_dict()}
 
-    #    torch.save(model_save_dict, model_path)
-    #return model
+        torch.save(model_save_dict, model_path)
