@@ -1,5 +1,5 @@
 
-## Requirements and Setup
+# Requirements and Setup
 
 First, create a system variable called 'SMART_TOOLS_ROOT_DIR' that points to where
 you downloaded the repository.
@@ -16,12 +16,15 @@ Same for the lab plotting utils on GIT:
 
 For managing software, consider using Anaconda.
 
-## Code Structure
+# Code Structure
 
-# First, run the random forest
+### First, run the random forest
 `python3 -i simple_random_forest_classifier.py`
 
-# Next, run the DNN in Pytorch
+### Next, run the DNN in Pytorch
 
 `python3 -i basic_neural_network_classifier.py`
+
+This command will store plots and the trained model in `${SMART_TOOLS_ROOT_DIR}/scratch`
+
 
