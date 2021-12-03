@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # use the SAME transformation on the test data
     val_x_np_scaled = FittedScaler.transform(val_x_np)
 
-    # now, create a pytorch dataloader for the numpy scaled data before feeding it into a DNN
+    # now, create pytorch tensors for the numpy scaled data before feeding it into a DNN
     ########################################################################
 
     # min, max, mean etc.
@@ -128,6 +128,23 @@ if __name__ == '__main__':
 
 	# val tensors:
 	# torch.Size([720, 110]) torch.Size([720])
+
+    # KEY next step: now, resize the data so each example is a num_sensor x num_feature matrix
+    # so it can nicely be fed into a CNN. the CNN will aggregate features across sensors
+    # in our case since we have 11 sensors and 10 features, we should get tensors of size
+    # (NUM_EXAMPLES x 11 x 10)
+    #####################################################################
+
+    train_x_tensor_resized = torch_train_x_tensor.reshape([-1, num_sensors, num_features])
+    val_x_tensor_resized = torch_val_x_tensor.reshape([-1, num_sensors, num_features])
+
+    print(train_x_tensor_resized.shape, val_x_tensor_resized.shape)
+    # sanity check: indeed, they have the correct size!
+    # torch.Size([2160, 11, 10]) torch.Size([720, 11, 10])
+
+    # now that we have correctly shaped tensors, lets create a pytorch dataloader
+    # to cycle through data
+    ########################################################################
 
 
 
