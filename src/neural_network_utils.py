@@ -6,6 +6,8 @@
 
 import torch
 from torch.utils.data import TensorDataset, DataLoader
+import torch.nn as nn
+import torch.nn.functional as F
 
 DEFAULT_PARAMS = {'batch_size': 32, 'shuffle': True, 'num_workers': 1}
 
@@ -121,4 +123,73 @@ def train_forecast_model(model_params, train_options):
         torch.save(model_save_dict, model_path)
 
     return model
+
+
+"""
+    Basic convolutional neural network architecture
+
+"""
+
+class BasicConvNet(nn.Module):
+
+    def __init__(self,num_classes=5):
+        super(BasicConvNet, self).__init__()
+        # 1 input image channel, 6 output channels, 3x3 square convolution
+        # kernel
+        self.conv1 = nn.Conv2d(1, 6, 3)
+        self.conv2 = nn.Conv2d(6, 16, 3)
+        # an affine operation: y = Wx + b
+        self.fc1 = nn.Linear(16, 120)  # 5*5 from image dimension
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, num_classes)
+
+    def forward(self, x):
+        # Max pooling over a (2, 2) window
+        # simply to debug outputs
+        # print(x.shape, '0')
+
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+
+        # simply to debug outputs
+        # print(x.shape, '1')
+
+        # If the size is a square, you can specify with a single number
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+
+        # simply to debug outputs
+        # print(x.shape, '2')
+
+        x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
+
+        # simply to print and debug
+        # print(x.shape, '3')
+
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+
+if __name__ == '__main__':
+
+    # instantiate the ConvNet
+
+    num_activities = 4
+    CNN = BasicConvNet(num_classes = num_activities)
+
+    num_examples = 32
+    num_sensors = 11
+    num_features = 10
+
+    # create some dummy data just to see if the network compiles
+    sample_data = torch.randn(num_examples, 1, num_sensors, num_features)
+
+    # call the CNN on the sample input data
+    prediction = CNN(sample_data)
+
+    # print the size of the output prediction
+    print(prediction.shape)
+
+
+
 
