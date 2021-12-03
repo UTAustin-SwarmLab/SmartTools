@@ -175,7 +175,7 @@ if __name__ == '__main__':
     val_dataset, val_loader = get_pytorch_dataloader(val_x_tensor_resized, torch_val_y_tensor, params=DEFAULT_PARAMS, print_mode = False, max_print=5)
 
 
-    # STEP 3: CREATE A SIMPLE NEURAL NETWORK MODEL, LOSS FUNCTION, OPTIMIZER
+    # STEP 3: TEST A PRE-TRAINED NEURAL NETWORK MODEL
     ########################################################################
 
     # create a dictionary that has all the data we care for
@@ -203,98 +203,37 @@ if __name__ == '__main__':
     # set up model (defined in utils)
     model = BasicConvNet(num_classes = num_activities)
 
-    # set up an optimizer
-    optimizer = torch.optim.Adam(model.parameters(),
-                              lr=train_options["learning_rate"], amsgrad=True)
-
     # loss/error function
     loss_func = torch.nn.CrossEntropyLoss()
 
-    # save the loss in arrays
-    train_loss_vec = []
-    val_loss_vec = []
+    # load in the pretrained weights
+    model_save_dict = {'epoch': i, 'model_state_dict': model.state_dict(), \
+        'optimizer_state_dict': optimizer.state_dict()}
 
-    # loop through the data for NUM_EPOCHS iterations to learn the model
-    for i in range(train_options["num_epochs"]):
-        train_loss = 0
-        for batch_num, (batch_x, batch_y) in enumerate(train_options['train_loader']):
+    torch.save(model_save_dict, model_path)
 
-            #batch_x_reshaped, batch_y_reshaped = resize_batch_per_model_type(batch_x, batch_y)
-            batch_x_reshaped = batch_x.unsqueeze(1)
-            batch_y_reshaped = batch_y
+    # prepare to count predictions for each class
+    correct_pred = {classname: 0 for classname in classes}
+    total_pred = {classname: 0 for classname in classes}
 
-            #print(' ')
-            #print(batch_x.shape, batch_x_reshaped.shape)
-            #print(batch_y.shape, batch_y_reshaped.shape)
-            #print(' ')
+    # again no gradients needed
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            outputs = net(images)
+            _, predictions = torch.max(outputs, 1)
+            # collect the correct predictions for each class
+            for label, prediction in zip(labels, predictions):
+                if label == prediction:
+                    correct_pred[classes[label]] += 1
+                total_pred[classes[label]] += 1
 
-            # forward pass
-            predictions = model(batch_x_reshaped)
 
-            # backwards pass (backpropagate gradients)
-            loss = loss_func(predictions, batch_y_reshaped)
+    # print accuracy for each class
+    for classname, correct_count in correct_pred.items():
+        accuracy = 100 * float(correct_count) / total_pred[classname]
+        print("Accuracy for class {:5s} is: {:.1f} %".format(classname,
+                                                       accuracy))
 
-            # add to running sum of loss
-            train_loss += loss.item()
 
-            # take a gradient descent step
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
 
-        # how often to print loss
-        if (i + 1) % train_options["output_freq"] == 0:
-            print(" ")
-            train_loss_vec.append(train_loss)
-            print("Epoch %d: Train loss %0.3f" % (i + 1, train_loss))
-
-            # now freeze the model periodically to test it on validation data
-            model.eval()
-            with torch.no_grad():
-                val_loss = 0
-                for batch_num, (val_x, val_y) in enumerate(train_options['val_loader']):
-
-                    val_x_reshaped = val_x.unsqueeze(1)
-                    val_y_reshaped = val_y
-
-                    predictions = model(val_x_reshaped)
-                    val_loss += loss_func(predictions, val_y_reshaped)
-
-                print("Epoch %d: Val loss %0.3f" % (i + 1, val_loss))
-                val_loss_vec.append(val_loss.item())
-
-            print(" ")
-            # reset the model for training
-            model.train()
-
-    print(' ')
-    print('train_loss')
-    print(train_loss_vec)
-    print(' ')
-
-    print(' ')
-    print('val_loss')
-    print(val_loss_vec)
-    print(' ')
-
-    ## plot the losses and optionally save the model to a file on disk
-    model_name = "  ".join((train_options["model_name"],
-                            "Epochs: "+str(train_options["num_epochs"])))
-
-    plt.plot(np.array(train_loss_vec))
-    plt.plot(np.array(val_loss_vec))
-    plt.legend(["train", "val"])
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title(model_name)
-    plt.savefig(train_options['plot_dir'] + '/' + model_name)
-    plt.close()
-
-    if train_options["save_model"]:
-        model_path = train_options["model_save_path"] + model_name + '.pt'
-        print('model_path: ', model_path)
-
-        model_save_dict = {'epoch': i, 'model_state_dict': model.state_dict(), \
-            'optimizer_state_dict': optimizer.state_dict()}
-
-        torch.save(model_save_dict, model_path)
