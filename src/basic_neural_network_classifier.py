@@ -9,11 +9,15 @@ from collections import OrderedDict
 import argparse
 import numpy as np
 
+# where the base code is on your machine
+SMART_TOOLS_ROOT_DIR = os.environ['SMART_TOOLS_ROOT_DIR']
+SCRATCH_DIR = SMART_TOOLS_ROOT_DIR + '/scratch/'
+
 # generic plotting utils - always use and modify these
-# UTILS_DIR=os.environ['UTILS_DIR']
-# sys.path.append(UTILS_DIR)
-# from plotting_utils import *
-# from textfile_utils import *
+UTILS_DIR=os.environ['UTILS_DIR']
+sys.path.append(UTILS_DIR)
+from plotting_utils import *
+from textfile_utils import *
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import torch
@@ -174,16 +178,23 @@ if __name__ == '__main__':
     # STEP 3: CREATE A SIMPLE NEURAL NETWORK MODEL, LOSS FUNCTION, OPTIMIZER
     ########################################################################
 
+    # create a dictionary that has all the data we care for
+    # how many epochs to train, how many batches are fed in, where to plot etc.
+
+    PLOT_DIR = SCRATCH_DIR + '/plots/'
+    remove_and_create_dir(PLOT_DIR)
+
     train_options = {"train_loader": train_loader,
                      "val_loader": val_loader,
-                     "num_epochs": 10,
-                     "batch_size": 32,
+                     "num_epochs": 5,
+                     "batch_size": 64,
                      "learning_rate": 1e-3,
                      "output_freq": 1,
                      "checkpoint_freq": 5,
                      "save_model": False,
                      "model_save_path": None,
-                     "plot_dir": None}
+                     "plot_dir": PLOT_DIR,
+                     "model_name": 'ConvNet Tool Activity Classifier'}
 
 
     # set up model (defined in utils)
@@ -264,17 +275,17 @@ if __name__ == '__main__':
     print(' ')
 
     ## plot the losses and optionally save the model to a file on disk
-    #model_name = "_".join((model.name,
-    #                       "Epochs"+str(train_options["num_epochs"]),
-    #                       "LatentDim"+str(model_params["latent_dim"])))
+    model_name = "  ".join((train_options["model_name"],
+                            "Epochs: "+str(train_options["num_epochs"])))
 
-    #plt.plot(np.array(train_loss[1:]))
-    #plt.plot(np.array(val_loss[1:]))
-    #plt.legend(["train", "val"])
-    #plt.xlabel("Epoch")
-    #plt.ylabel("loss")
-    #plt.title("Prediction Model")
-    #plt.savefig(train_options['plot_dir'] + '/' + model_name)
+    plt.plot(np.array(train_loss_vec))
+    plt.plot(np.array(val_loss_vec))
+    plt.legend(["train", "val"])
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title(model_name)
+    plt.savefig(train_options['plot_dir'] + '/' + model_name)
+    plt.close()
 
     #if train_options["save_model"]:
     #    model_path = train_options["model_save_path"] + model_name + '.pt'
@@ -284,5 +295,4 @@ if __name__ == '__main__':
     #        'optimizer_state_dict': optimizer.state_dict()}
 
     #    torch.save(model_save_dict, model_path)
-
     #return model
