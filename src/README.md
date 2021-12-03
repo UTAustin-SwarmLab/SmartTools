@@ -8,7 +8,7 @@ On Linux, for example, make your bashrc have:
 
 `export SMART_TOOLS_ROOT_DIR="{path to your repo}"`
 
-Same for the lab plotting utils on GIT:
+Same for the lab plotting utils on GIT. An example for my machine in my bashrc:
 
 `export SMART_TOOLS_ROOT_DIR='/Users/spc2294/Documents/work/code/SmartTools/SmartTools'`
 
