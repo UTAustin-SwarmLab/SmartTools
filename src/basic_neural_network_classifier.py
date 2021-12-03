@@ -16,6 +16,11 @@ import argparse
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import torch
+from torch.utils.data import TensorDataset, DataLoader
+
+# helper functions on neural networks
+from neural_network_utils import *
+
 
 # helper function to extract key columns from the pandas dataframes
 
@@ -44,6 +49,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    # STEP 0: PANDAS DATA MANIPULATION, SAME AS RANDOM FOREST
     ########################################################################
     # Load into dataframes and do some basic stats
     train_df = pandas.read_csv(args.train_csv)
@@ -97,6 +103,9 @@ if __name__ == '__main__':
     # use the SAME transformation on the test data
     val_x_np_scaled = FittedScaler.transform(val_x_np)
 
+    # STEP 1: CREATE PYTORCH TENSORS
+    ########################################################################
+
     # now, create pytorch tensors for the numpy scaled data before feeding it into a DNN
     ########################################################################
 
@@ -142,9 +151,21 @@ if __name__ == '__main__':
     # sanity check: indeed, they have the correct size!
     # torch.Size([2160, 11, 10]) torch.Size([720, 11, 10])
 
-    # now that we have correctly shaped tensors, lets create a pytorch dataloader
-    # to cycle through data
+
+    # STEP 2: CREATE PYTORCH DATALOADERS TO CYCLE THROUGH DATA
+    # from now on, all helper functions are in neural_network_utils.py
     ########################################################################
 
+    # now that we have correctly shaped tensors, lets create a pytorch dataloader
+    # to cycle through data. this will print data in chunks of:
+    # BATCH_SIZE x num_sensors x num_features, where BATCH_SIZE is a default of 32
+    ########################################################################
 
+    train_dataset, train_dataloader = get_pytorch_dataloader(train_x_tensor_resized, torch_train_y_tensor, params=DEFAULT_PARAMS, print_mode = True, max_print=5)
+
+    val_dataset, val_dataloader = get_pytorch_dataloader(val_x_tensor_resized, torch_val_y_tensor, params=DEFAULT_PARAMS, print_mode = True, max_print=5)
+
+
+    # STEP 3: CREATE A SIMPLE NEURAL NETWORK MODEL, LOSS FUNCTION, OPTIMIZER
+    ########################################################################
 
