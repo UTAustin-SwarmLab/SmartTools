@@ -189,7 +189,7 @@ if __name__ == '__main__':
 
     train_options = {"train_loader": train_loader,
                      "val_loader": val_loader,
-                     "num_epochs": 5,
+                     "num_epochs": 50,
                      "batch_size": 64,
                      "learning_rate": 1e-3,
                      "output_freq": 1,
