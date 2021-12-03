@@ -209,10 +209,10 @@ if __name__ == '__main__':
             batch_x_reshaped = batch_x.unsqueeze(1)
             batch_y_reshaped = batch_y
 
-            print(' ')
-            print(batch_x.shape, batch_x_reshaped.shape)
-            print(batch_y.shape, batch_y_reshaped.shape)
-            print(' ')
+            #print(' ')
+            #print(batch_x.shape, batch_x_reshaped.shape)
+            #print(batch_y.shape, batch_y_reshaped.shape)
+            #print(' ')
 
             # forward pass
             predictions = model(batch_x_reshaped)
