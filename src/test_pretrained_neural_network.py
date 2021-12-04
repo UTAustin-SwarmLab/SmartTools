@@ -91,11 +91,11 @@ if __name__ == '__main__':
     # min, max, mean etc.
     num_features = 10
 
-    for data_split, data_df in train_test_val_df_dict.iteritems():
+    for data_split, data_df in train_test_val_df_dict.items():
 
-        data_x_np, data_y_np, data_x_df, data_y_df = get_xy_numpy(train_df, x_features_columns, y_features_columns=y_features_columns)
+        data_x_np, data_y_np, data_x_df, data_y_df = get_xy_numpy(data_df, x_features_columns, y_features_columns=y_features_columns)
 
-        if data_split == 'Train':
+        if data_split == 'train':
             scaler = MinMaxScaler()
 
             # fit the params of scaling on TRAIN ONLY
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         # (NUM_EXAMPLES x 11 x 10)
         #####################################################################
 
-        data_x_tensor_resized = torch_train_x_tensor.reshape([-1, num_sensors, num_features])
+        data_x_tensor_resized = torch_x_tensor.reshape([-1, num_sensors, num_features])
 
         # STEP 2: CREATE PYTORCH DATALOADERS TO CYCLE THROUGH DATA
         # from now on, all helper functions are in neural_network_utils.py
@@ -138,52 +138,62 @@ if __name__ == '__main__':
     # how many epochs to train, how many batches are fed in, where to plot etc.
 
     PLOT_DIR = SCRATCH_DIR + '/plots/'
-    remove_and_create_dir(PLOT_DIR)
-
     MODEL_DIR = SCRATCH_DIR + '/models/'
-    remove_and_create_dir(MODEL_DIR)
 
-    test_options = {"train_loader": train_loader,
-                     "val_loader": val_loader,
-                     "test_loader": test_loader,
+    test_options = {"train_loader": train_test_val_dataloaders['train'],
+                     "val_loader": train_test_val_dataloaders['val'],
+                     "test_loader": train_test_val_dataloaders['test'],
                      "batch_size": 64,
                      "model_save_path": MODEL_DIR,
+                     "num_epochs": 50,
                      "plot_dir": PLOT_DIR,
                      "model_name": 'ConvNet Tool Activity Classifier'}
 
 
-    # set up model (defined in utils)
+    model_name = "  ".join((test_options["model_name"],
+                            "Epochs: "+str(test_options["num_epochs"])))
+
+    ## set up model (defined in utils)
     model = BasicConvNet(num_classes = num_activities)
 
     # loss/error function
     loss_func = torch.nn.CrossEntropyLoss()
 
     # load in the pretrained weights
-    MODEL_PATH = MODEL_DIR + '/' + test_options['model_name'] + '.pt'
-    model.load_state_dict(torch.load(MODEL_PATH))
+    model_path = test_options["model_save_path"] + model_name + '.pt'
 
-    # prepare to count predictions for each class
-    correct_pred = {classname: 0 for classname in classes}
-    total_pred = {classname: 0 for classname in classes}
+    model.load_state_dict(torch.load(model_path)['model_state_dict'])
 
-    # again no gradients needed
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data
-            outputs = net(images)
-            _, predictions = torch.max(outputs, 1)
-            # collect the correct predictions for each class
-            for label, prediction in zip(labels, predictions):
-                if label == prediction:
-                    correct_pred[classes[label]] += 1
-                total_pred[classes[label]] += 1
+    classes = ('Engrave', 'Sand', 'Cut', 'Route')
 
 
-    # print accuracy for each class
-    for classname, correct_count in correct_pred.items():
-        accuracy = 100 * float(correct_count) / total_pred[classname]
-        print("Accuracy for class {:5s} is: {:.1f} %".format(classname,
-                                                       accuracy))
+    for data_split, data_loader in train_test_val_dataloaders.items():
 
+        # prepare to count predictions for each class
+        correct_pred = {classname: 0 for classname in classes}
+        total_pred = {classname: 0 for classname in classes}
+
+        # again no gradients needed
+        with torch.no_grad():
+            for data in data_loader:
+                images, labels = data
+                images_reshaped = images.unsqueeze(1)
+                outputs = model(images_reshaped)
+                _, predictions = torch.max(outputs, 1)
+                # collect the correct predictions for each class
+                for label_tensor, prediction in zip(labels, predictions):
+                    label = label_tensor.item()
+                    if label == prediction:
+                        correct_pred[classes[label]] += 1
+                    total_pred[classes[label]] += 1
+
+
+        # print accuracy for each class
+        for classname, correct_count in correct_pred.items():
+            accuracy = 100 * float(correct_count) / total_pred[classname]
+            print(' ')
+            print('Data Split: ', data_split)
+            print("Accuracy for class {:5s} is: {:.1f} %".format(classname, accuracy))
+            print(' ')
 
 

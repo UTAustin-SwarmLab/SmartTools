@@ -21,10 +21,13 @@ For managing software, consider using Anaconda.
 ### First, run the random forest
 `python3 -i simple_random_forest_classifier.py`
 
-### Next, run the DNN in Pytorch
+### Next, train the DNN in Pytorch
 
 `python3 -i basic_neural_network_classifier.py`
 
 This command will store plots and the trained model in `${SMART_TOOLS_ROOT_DIR}/scratch`
 
 
+### Finally, test the pre-trained DNN in Pytorch
+
+`python3 -i test_pretrained_neural_network.py`
