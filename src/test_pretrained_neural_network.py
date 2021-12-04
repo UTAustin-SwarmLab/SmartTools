@@ -149,9 +149,9 @@ if __name__ == '__main__':
                      "plot_dir": PLOT_DIR,
                      "model_name": 'ConvNet Tool Activity Classifier'}
 
-
     model_name = "  ".join((test_options["model_name"],
                             "Epochs: "+str(test_options["num_epochs"])))
+
 
     ## set up model (defined in utils)
     model = BasicConvNet(num_classes = num_activities)
@@ -159,8 +159,12 @@ if __name__ == '__main__':
     # loss/error function
     loss_func = torch.nn.CrossEntropyLoss()
 
+    # IF we use the model we just trained
     # load in the pretrained weights
-    model_path = test_options["model_save_path"] + model_name + '.pt'
+    # model_path = test_options["model_save_path"] + model_name + '.pt'
+
+    # ELSE, use the default model Sandeep trained
+    model_path = SMART_TOOLS_ROOT_DIR + '/pretrained_models/PyTorch/' + model_name + '.pt'
 
     model.load_state_dict(torch.load(model_path)['model_state_dict'])
 
