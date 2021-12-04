@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
     model.load_state_dict(torch.load(model_path)['model_state_dict'])
 
-    classes = ('Engrave', 'Sand', 'Cut', 'Route')
+    classes = ('Engrave', 'Cut',  'Sand', 'Route')
 
 
     for data_split, data_loader in train_test_val_dataloaders.items():
