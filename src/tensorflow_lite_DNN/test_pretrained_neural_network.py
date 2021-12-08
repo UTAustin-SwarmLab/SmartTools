@@ -225,7 +225,7 @@ if __name__ == '__main__':
     model.fit(train_data,
             epochs=epochs,
             validation_data=val_data,
-            callbacks=[tensorboard_callback])
+            callbacks=[tensorboard_callback, csv_logger])
 
     loss, acc = model.evaluate(test_data)
     pred = np.argmax(model.predict(test_data), axis=1)
