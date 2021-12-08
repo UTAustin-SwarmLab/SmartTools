@@ -110,7 +110,7 @@ if __name__ == '__main__':
         # now actually transform the training data
         data_x_np_scaled = FittedScaler.transform(data_x_np)
         num_sensors = int(len(x_features_columns)/num_features)
-        reshaped_data_x_np_scaled = data_x_np_scaled.reshape([-1, num_sensors, num_features, 1])
+        reshaped_data_x_np_scaled = data_x_np_scaled.reshape([-1, num_sensors, num_features])
 
 
         # x: data_x_np_scaled
@@ -147,9 +147,9 @@ if __name__ == '__main__':
 
     # now, follow very similar steps as the magic wand training tutorial
 
-    for batch in train_data:
-        print(batch[0].shape)
-        print(batch[1].shape)
+    #for batch in train_data:
+    #    print(batch[0].shape)
+    #    print(batch[1].shape)
 
     test_len = 0
     for batch in test_data:
@@ -160,23 +160,33 @@ if __name__ == '__main__':
     """Trains the model."""
 
     """Builds a convolutional neural network in Keras."""
+    #model = tf.keras.Sequential([
+    #  tf.keras.layers.Conv2D(
+    #      8, (4, 3),
+    #      padding="same",
+    #      activation="relu",
+    #      input_shape=(num_sensors, num_features)),  # output_shape=(batch, 128, 3, 8)
+    #  tf.keras.layers.MaxPool2D((3, 3)),  # (batch, 42, 1, 8)
+    #  tf.keras.layers.Dropout(0.1),  # (batch, 42, 1, 8)
+    #  tf.keras.layers.Conv2D(16, (4, 1), padding="same",
+    #                         activation="relu"),  # (batch, 42, 1, 16)
+    #  tf.keras.layers.MaxPool2D((3, 1), padding="same"),  # (batch, 14, 1, 16)
+    #  tf.keras.layers.Dropout(0.1),  # (batch, 14, 1, 16)
+    #  tf.keras.layers.Flatten(),  # (batch, 224)
+    #  tf.keras.layers.Dense(16, activation="relu"),  # (batch, 16)
+    #  tf.keras.layers.Dropout(0.1),  # (batch, 16)
+    #  tf.keras.layers.Dense(4, activation="softmax")  # (batch, 4)
+    #])
     model = tf.keras.Sequential([
-      tf.keras.layers.Conv2D(
-          8, (4, 3),
-          padding="same",
-          activation="relu",
-          input_shape=(num_sensors, num_features, 1)),  # output_shape=(batch, 128, 3, 8)
-      tf.keras.layers.MaxPool2D((3, 3)),  # (batch, 42, 1, 8)
-      tf.keras.layers.Dropout(0.1),  # (batch, 42, 1, 8)
-      tf.keras.layers.Conv2D(16, (4, 1), padding="same",
-                             activation="relu"),  # (batch, 42, 1, 16)
-      tf.keras.layers.MaxPool2D((3, 1), padding="same"),  # (batch, 14, 1, 16)
-      tf.keras.layers.Dropout(0.1),  # (batch, 14, 1, 16)
-      tf.keras.layers.Flatten(),  # (batch, 224)
-      tf.keras.layers.Dense(16, activation="relu"),  # (batch, 16)
-      tf.keras.layers.Dropout(0.1),  # (batch, 16)
-      tf.keras.layers.Dense(4, activation="softmax")  # (batch, 4)
+        tf.keras.layers.Conv1D(56, 3, activation='relu', input_shape=(num_sensors, num_features)),
+        tf.keras.layers.MaxPooling1D(2, 2),
+        tf.keras.layers.Conv1D(56, 3, activation='relu'),
+        tf.keras.layers.MaxPooling1D(2, 2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(784, activation='relu'),
+        tf.keras.layers.Dense(10, activation='softmax')
     ])
+
 
 
     #calculate_model_size(model)
@@ -195,9 +205,17 @@ if __name__ == '__main__':
     #    test_labels[idx] = label.numpy()
     #    idx += 1
 
-    train_data = train_data.batch(batch_size).repeat()
-    val_data = val_data.batch(batch_size)
-    test_data = test_data.batch(batch_size)
+    print('here a')
+
+    #train_data = train_data.batch(batch_size).repeat()
+    #val_data = val_data.batch(batch_size)
+    #test_data = test_data.batch(batch_size)
+
+    for batch in train_data:
+        print(batch[0].shape)
+        print(batch[1].shape)
+
+    print('here b')
     model.fit(train_data,
             epochs=epochs,
             validation_data=val_data,
