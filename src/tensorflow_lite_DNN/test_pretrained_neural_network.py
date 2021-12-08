@@ -8,6 +8,7 @@ import sys,os
 from collections import OrderedDict
 import argparse
 import numpy as np
+import datetime
 
 # where the base code is on your machine
 SMART_TOOLS_ROOT_DIR = os.environ['SMART_TOOLS_ROOT_DIR']
@@ -23,6 +24,9 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import tensorflow as tf
 
 from utils_tensorflow import *
+
+logdir = "logs/scalars/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
 # helper function to extract key columns from the pandas dataframes
 
@@ -140,6 +144,64 @@ if __name__ == '__main__':
         print(batch[0].shape)
         print(batch[1].shape)
 
+    test_len = 0
+    for batch in test_data:
+        test_len += 1
+
         # reshape this to be a matrix per example, just like we did in pytorch
 
+    """Trains the model."""
 
+    """Builds a convolutional neural network in Keras."""
+    model = tf.keras.Sequential([
+      tf.keras.layers.Conv2D(
+          8, (4, 3),
+          padding="same",
+          activation="relu",
+          input_shape=(num_sensors, num_features, 1)),  # output_shape=(batch, 128, 3, 8)
+      tf.keras.layers.MaxPool2D((3, 3)),  # (batch, 42, 1, 8)
+      tf.keras.layers.Dropout(0.1),  # (batch, 42, 1, 8)
+      tf.keras.layers.Conv2D(16, (4, 1), padding="same",
+                             activation="relu"),  # (batch, 42, 1, 16)
+      tf.keras.layers.MaxPool2D((3, 1), padding="same"),  # (batch, 14, 1, 16)
+      tf.keras.layers.Dropout(0.1),  # (batch, 14, 1, 16)
+      tf.keras.layers.Flatten(),  # (batch, 224)
+      tf.keras.layers.Dense(16, activation="relu"),  # (batch, 16)
+      tf.keras.layers.Dropout(0.1),  # (batch, 16)
+      tf.keras.layers.Dense(4, activation="softmax")  # (batch, 4)
+    ])
+
+
+    #calculate_model_size(model)
+
+    epochs = 50
+    batch_size = 64
+    model.compile(optimizer="adam",
+                loss="sparse_categorical_crossentropy",
+                metrics=["accuracy"])
+
+
+
+    #test_labels = np.zeros(test_len)
+    #idx = 0
+    #for data, label in test_data:  # pylint: disable=unused-variable
+    #    test_labels[idx] = label.numpy()
+    #    idx += 1
+
+    train_data = train_data.batch(batch_size).repeat()
+    val_data = val_data.batch(batch_size)
+    test_data = test_data.batch(batch_size)
+    model.fit(train_data,
+            epochs=epochs,
+            validation_data=val_data,
+            steps_per_epoch=1000,
+            callbacks=[tensorboard_callback])
+
+    loss, acc = model.evaluate(test_data)
+    pred = np.argmax(model.predict(test_data), axis=1)
+
+    #confusion = tf.math.confusion_matrix(labels=tf.constant(test_labels),
+    #                                   predictions=tf.constant(pred),
+    #                                   num_classes=4)
+    #print(confusion)
+    print("Loss {}, Accuracy {}".format(loss, acc))
