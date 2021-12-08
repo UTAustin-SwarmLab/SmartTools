@@ -22,6 +22,8 @@ from textfile_utils import *
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import tensorflow as tf
 
+from utils_tensorflow import *
+
 # helper function to extract key columns from the pandas dataframes
 
 def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
@@ -123,9 +125,21 @@ if __name__ == '__main__':
         tf_dataset_dict[data_split] = tf_dataset
 
 
-train_dataset = tf_dataset_dict['train'].shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
-val_dataset = tf_dataset_dict['val'].batch(BATCH_SIZE)
-test_dataset = tf_dataset_dict['test'].batch(BATCH_SIZE)
+    # we now have all the datasets and dataloaders in TENSORFLOW format
+    train_dataset = tf_dataset_dict['train'].shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
+    val_dataset = tf_dataset_dict['val'].batch(BATCH_SIZE)
+    test_dataset = tf_dataset_dict['test'].batch(BATCH_SIZE)
 
+    train_data = train_dataset.map(reshape_function)
+    test_data = test_dataset.map(reshape_function)
+    val_data = val_dataset.map(reshape_function)
+
+    # now, follow very similar steps as the magic wand training tutorial
+
+    for batch in train_data:
+        print(batch[0].shape)
+        print(batch[1].shape)
+
+        # reshape this to be a matrix per example, just like we did in pytorch
 
 
