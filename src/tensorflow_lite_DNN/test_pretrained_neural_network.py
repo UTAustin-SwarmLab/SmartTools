@@ -20,6 +20,7 @@ from plotting_utils import *
 from textfile_utils import *
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import tensorflow as tf
 
 # helper function to extract key columns from the pandas dataframes
 
@@ -34,6 +35,11 @@ def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
     assert(y_df.isnull().sum().sum() == 0)
 
     return x_np, y_np, x_df, y_df
+
+
+BATCH_SIZE = 64
+SHUFFLE_BUFFER_SIZE = 100
+
 
 
 if __name__ == '__main__':
@@ -80,6 +86,8 @@ if __name__ == '__main__':
     train_test_val_df_dict['val'] = val_df
     train_test_val_df_dict['test'] = test_df
 
+    tf_dataset_dict = OrderedDict()
+
     # min, max, mean etc.
     num_features = 10
 
@@ -107,5 +115,17 @@ if __name__ == '__main__':
         print('data_y_np: ', data_y_np.shape)
         print(' ')
         print(' ')
+
+        # get a tensorflow dataset
+        tf_dataset = tf.data.Dataset.from_tensor_slices((data_x_np_scaled, data_y_np))
+
+        # load the tensorflow dataset
+        tf_dataset_dict[data_split] = tf_dataset
+
+
+train_dataset = tf_dataset_dict['train'].shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
+val_dataset = tf_dataset_dict['val'].batch(BATCH_SIZE)
+test_dataset = tf_dataset_dict['test'].batch(BATCH_SIZE)
+
 
 
