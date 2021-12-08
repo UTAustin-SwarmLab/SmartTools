@@ -184,18 +184,23 @@ if __name__ == '__main__':
         tf.keras.layers.MaxPooling1D(2, 2),
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(784, activation='relu'),
-        tf.keras.layers.Dense(10, activation='softmax')
+        tf.keras.layers.Dense(4, activation='softmax')
     ])
 
 
+	#csv_logger = tf.keras.callbacks.CSVLogger(
+	#	filename, separator=',', append=False
+	#)
 
     #calculate_model_size(model)
+    csv_logger = tf.keras.callbacks.CSVLogger('training.log')
 
     epochs = 50
     batch_size = 64
     model.compile(optimizer="adam",
                 loss="sparse_categorical_crossentropy",
-                metrics=["accuracy"])
+                metrics=["accuracy"],
+				callbacks=[csv_logger])
 
 
 
@@ -207,6 +212,7 @@ if __name__ == '__main__':
 
     print('here a')
 
+    # this was calling the problem
     #train_data = train_data.batch(batch_size).repeat()
     #val_data = val_data.batch(batch_size)
     #test_data = test_data.batch(batch_size)
@@ -219,14 +225,15 @@ if __name__ == '__main__':
     model.fit(train_data,
             epochs=epochs,
             validation_data=val_data,
-            steps_per_epoch=1000,
             callbacks=[tensorboard_callback])
 
     loss, acc = model.evaluate(test_data)
     pred = np.argmax(model.predict(test_data), axis=1)
 
+
+
     #confusion = tf.math.confusion_matrix(labels=tf.constant(test_labels),
     #                                   predictions=tf.constant(pred),
     #                                   num_classes=4)
     #print(confusion)
-    print("Loss {}, Accuracy {}".format(loss, acc))
+    print("Loss {}, Test Accuracy {}".format(loss, acc))
