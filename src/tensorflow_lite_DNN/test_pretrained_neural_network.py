@@ -109,21 +109,23 @@ if __name__ == '__main__':
 
         # now actually transform the training data
         data_x_np_scaled = FittedScaler.transform(data_x_np)
-
         num_sensors = int(len(x_features_columns)/num_features)
+        reshaped_data_x_np_scaled = data_x_np_scaled.reshape([-1, num_sensors, num_features, 1])
+
 
         # x: data_x_np_scaled
         # y: data_y_np
         print(' ')
         print(' ')
         print('data_split: ', data_split)
-        print('data_x_np: ', data_x_np.shape)
+        print('data_x_np: ', data_x_np_scaled.shape)
+        print('reshaped_data_x_np: ', reshaped_data_x_np_scaled.shape)
         print('data_y_np: ', data_y_np.shape)
         print(' ')
         print(' ')
 
         # get a tensorflow dataset
-        tf_dataset = tf.data.Dataset.from_tensor_slices((data_x_np_scaled, data_y_np))
+        tf_dataset = tf.data.Dataset.from_tensor_slices((reshaped_data_x_np_scaled, data_y_np))
 
         # load the tensorflow dataset
         tf_dataset_dict[data_split] = tf_dataset
@@ -134,9 +136,14 @@ if __name__ == '__main__':
     val_dataset = tf_dataset_dict['val'].batch(BATCH_SIZE)
     test_dataset = tf_dataset_dict['test'].batch(BATCH_SIZE)
 
-    train_data = train_dataset.map(reshape_function)
-    test_data = test_dataset.map(reshape_function)
-    val_data = val_dataset.map(reshape_function)
+    train_data = train_dataset
+    val_data = val_dataset
+    test_data = test_dataset
+
+    # old, do not need anymore
+    # train_data = train_dataset.map(reshape_function)
+    # test_data = test_dataset.map(reshape_function)
+    # val_data = val_dataset.map(reshape_function)
 
     # now, follow very similar steps as the magic wand training tutorial
 
