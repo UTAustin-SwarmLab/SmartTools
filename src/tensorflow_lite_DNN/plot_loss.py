@@ -15,7 +15,11 @@ from textfile_utils import *
 
 if __name__ == '__main__':
 
-    df = pandas.read_csv('training.log')
+    base_dir = SCRATCH_DIR + '/tensorflow_classifier/'
+
+    log_file = base_dir + '/training.log'
+
+    df = pandas.read_csv(log_file)
     train_accuracy_vec = np.array(df['accuracy'])
     val_accuracy_vec = np.array(df['val_accuracy'])
 
@@ -35,5 +39,5 @@ if __name__ == '__main__':
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.title('TF Model')
-    plt.savefig('accuracy.pdf')
+    plt.savefig(base_dir + '/accuracy.pdf')
     plt.close()
