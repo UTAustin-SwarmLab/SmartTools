@@ -146,9 +146,8 @@ if __name__ == '__main__':
         print(' ')
         print(' ')
 
-
         ## now actually transform the training data
-        data_x_np_scaled = normalized_data_x_df.numpy()
+        data_x_np_scaled = normalized_data_x_df.to_numpy()
 
         ## BATCH_SIZE x NUM_SENSORS x NUM_FEATURES
         ## view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
@@ -202,7 +201,7 @@ if __name__ == '__main__':
     model.fit(train_data,
             epochs=epochs,
             validation_data=val_data,
-            callbacks=[tensorboard_callback, csv_logger])
+            callbacks=[csv_logger])
 
     # test loss, test accuracy
     loss, acc = model.evaluate(test_data)
