@@ -106,11 +106,11 @@ if __name__ == '__main__':
 
         data_x_np, data_y_np, data_x_df, data_y_df = get_xy_numpy(data_df, x_features_columns, y_features_columns=y_features_columns)
 
-        quantile_list = [.01, 0.25, 0.5, 0.75, 0.99]
+        quantile_list = [.001, 0.25, 0.5, 0.75, 0.999]
 
         if data_split == 'train':
             # do not use sklearn, instead save the following quantiles of data to a dataframe and store as a csv
-            train_quantile_df = data_x_df.quantile()
+            train_quantile_df = data_x_df.quantile(quantile_list)
 
             #train_quantile_df.to_csv(train_quantile_csv)
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         for feature_name in data_x_df.columns:
 
             min_value = train_quantile_df[feature_name][quantile_list[0]]
-            max_value = train_quantile_df[feature_name][quantile_list[1]]
+            max_value = train_quantile_df[feature_name][quantile_list[-1]]
 
             normalized_data_x_df[feature_name] = (data_x_df[feature_name] - min_value) / (max_value - min_value)
 
