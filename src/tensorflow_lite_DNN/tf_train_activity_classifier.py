@@ -20,9 +20,7 @@ sys.path.append(UTILS_DIR)
 from plotting_utils import *
 from textfile_utils import *
 
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import tensorflow as tf
-
 from utils_tensorflow import *
 
 # where the tensorflow logs are placed
@@ -52,6 +50,14 @@ epochs = 50
 # view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
 
 if __name__ == '__main__':
+
+    # now build the CNN model
+    base_dir = SCRATCH_DIR + '/tensorflow_classifier/'
+    remove_and_create_dir(base_dir)
+
+    model_base_dir = base_dir + '/tf_model/'
+    remove_and_create_dir(model_base_dir)
+
 
     # Pull arguments from command line.
     parser = argparse.ArgumentParser(description='plot sensor data')
@@ -104,41 +110,58 @@ if __name__ == '__main__':
 
     # SCALE THE DATA and create a Tensorflow DataSet
     # analagous to a Pytorch data loader
+    # KEY POINT: we manually re-scale without sklearn so we know how to replicate the scaling in C on the Arduino
+    # we store the scaling quantiles in train_quantile_csv, saved later
 
     for data_split, data_df in train_test_val_df_dict.items():
 
         data_x_np, data_y_np, data_x_df, data_y_df = get_xy_numpy(data_df, x_features_columns, y_features_columns=y_features_columns)
 
+        quantile_list = [.001, 0.25, 0.5, 0.75, 0.999]
+
+        # only for training data, get the above quantiles for ALL COLUMNS and save to a csv
         if data_split == 'train':
-            scaler = MinMaxScaler()
+            # do not use sklearn, instead save the following quantiles of data to a dataframe and store as a csv
+            train_quantile_df = data_x_df.quantile(quantile_list)
 
-            # fit the params of scaling on TRAIN ONLY
-            FittedScaler = scaler.fit(data_x_np)
+            train_quantile_csv = base_dir + '/train_normalization_quantiles.csv'
 
-        # now actually transform the training data
-        data_x_np_scaled = FittedScaler.transform(data_x_np)
+            train_quantile_df.to_csv(train_quantile_csv)
 
-        # BATCH_SIZE x NUM_SENSORS x NUM_FEATURES
-        # view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
+        # for all data, scale each column using the same PER-COLUMN scaling as the training data for uniformity
+        normalized_data_x_df = data_x_df.copy()
+        for feature_name in data_x_df.columns:
+
+            # do not use absolute min, max due to OUTLIERS!
+            min_value = train_quantile_df[feature_name][quantile_list[0]]
+            max_value = train_quantile_df[feature_name][quantile_list[-1]]
+
+            normalized_data_x_df[feature_name] = (data_x_df[feature_name] - min_value) / (max_value - min_value)
+
+        # now, print the stats of the normalized dataframe, the max should be roughly near 1 always
+        print(' ')
+        print(' ')
+        print('data split: ', data_split)
+        print(normalized_data_x_df.describe())
+        print(' ')
+        print(' ')
+
+
+        ## now actually transform the training data
+        data_x_np_scaled = normalized_data_x_df.numpy()
+
+        ## BATCH_SIZE x NUM_SENSORS x NUM_FEATURES
+        ## view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
 
         reshaped_data_x_np_scaled = data_x_np_scaled.reshape([-1, num_sensors, num_features])
 
-        # x: data_x_np_scaled
-        # y: data_y_np
-        # print(' ')
-        # print(' ')
-        # print('data_split: ', data_split)
-        # print('data_x_np: ', data_x_np_scaled.shape)
-        # print('reshaped_data_x_np: ', reshaped_data_x_np_scaled.shape)
-        # print('data_y_np: ', data_y_np.shape)
-        # print(' ')
-        # print(' ')
-
-        # get a tensorflow dataset
+        ## get a tensorflow dataset
         tf_dataset = tf.data.Dataset.from_tensor_slices((reshaped_data_x_np_scaled, data_y_np))
 
         # load the tensorflow dataset
         tf_dataset_dict[data_split] = tf_dataset
+
+
 
 
     # we now have all the datasets and dataloaders in TENSORFLOW format
@@ -152,12 +175,6 @@ if __name__ == '__main__':
     for batch in test_data:
         test_len += 1
 
-    # now build the CNN model
-    base_dir = SCRATCH_DIR + '/tensorflow_classifier/'
-    remove_and_create_dir(base_dir)
-
-    model_base_dir = base_dir + '/tf_model/'
-    remove_and_create_dir(model_base_dir)
 
     # 1D CNN model
     model, model_path = build_1D_CNN(model_base_dir, model_name = '1DCNN', num_sensors = num_sensors, num_features = num_features, num_outputs = num_activities)
