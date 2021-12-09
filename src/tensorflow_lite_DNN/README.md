@@ -76,3 +76,10 @@ Models are saved at `${SMART_TOOLS_ROOT_DIR}/`
 
 - example blog: `https://machinelearningmastery.com/how-to-save-and-load-models-and-data-preparation-in-scikit-learn-for-later-use/`
 
+- we do not use scikit learn on purpose (unlike Pytorch)
+- instead, we save the quantiles of each column in the training data to a csv
+- then, for any new dataset we scale by the .001 and .999 quantile of each column, which we can easily do in C
+
+- `normalized_x = (x - quantile_.001[x]) / (quantile_.999[x] - quantile_.001[x])`
+
+
