@@ -26,10 +26,6 @@ import tensorflow as tf
 from utils_tensorflow import *
 
 # where the tensorflow logs are placed
-
-logdir = "logs/scalars/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-
 # helper function to extract key columns from the pandas dataframes
 
 def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
