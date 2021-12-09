@@ -46,6 +46,10 @@ def build_1D_CNN(model_base_dir, model_name = '1DCNN', num_sensors = 11, num_fea
 
   return model, model_path
 
+"""
+    from tf examples, unused currently
+
+"""
 
 def train_net(
     model,
@@ -111,3 +115,16 @@ def train_net(
   print("Quantized model is %d bytes" % quantized_model_size)
   difference = basic_model_size - quantized_model_size
   print("Difference is %d bytes" % difference)
+
+
+def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
+    x_df = df[x_features_columns]
+    x_np = x_df.to_numpy()
+    # get the output column we want to predict
+    y_df = df[y_features_columns]
+    y_np = y_df.to_numpy()
+    # assert the x and y dataframes do NOT have any null or NaN entries
+    assert(x_df.isnull().sum().sum() == 0)
+    assert(y_df.isnull().sum().sum() == 0)
+
+    return x_np, y_np, x_df, y_df

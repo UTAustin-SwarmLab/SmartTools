@@ -72,4 +72,7 @@ Models are saved at `${SMART_TOOLS_ROOT_DIR}/`
     - good link:
     - https://stackoverflow.com/questions/58576446/error-in-keras-digit-dataset-expected-conv2d-input-to-have-4-dimensions-but-go
 
+# Extremely Important: How to Scale Data Systematically from Cloud to Arduino
+
+- example blog: `https://machinelearningmastery.com/how-to-save-and-load-models-and-data-preparation-in-scikit-learn-for-later-use/`
 
