@@ -49,6 +49,8 @@ def get_xy_numpy(df, x_features_columns, y_features_columns='Activity'):
 BATCH_SIZE = 64
 SHUFFLE_BUFFER_SIZE = 100
 
+epochs = 50
+
 # NOTE: data will be re-organized to size:
 # BATCH_SIZE x NUM_SENSORS x NUM_FEATURES
 # view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
@@ -127,14 +129,14 @@ if __name__ == '__main__':
 
         # x: data_x_np_scaled
         # y: data_y_np
-        print(' ')
-        print(' ')
-        print('data_split: ', data_split)
-        print('data_x_np: ', data_x_np_scaled.shape)
-        print('reshaped_data_x_np: ', reshaped_data_x_np_scaled.shape)
-        print('data_y_np: ', data_y_np.shape)
-        print(' ')
-        print(' ')
+        # print(' ')
+        # print(' ')
+        # print('data_split: ', data_split)
+        # print('data_x_np: ', data_x_np_scaled.shape)
+        # print('reshaped_data_x_np: ', reshaped_data_x_np_scaled.shape)
+        # print('data_y_np: ', data_y_np.shape)
+        # print(' ')
+        # print(' ')
 
         # get a tensorflow dataset
         tf_dataset = tf.data.Dataset.from_tensor_slices((reshaped_data_x_np_scaled, data_y_np))
@@ -172,8 +174,6 @@ if __name__ == '__main__':
 
     # how long we train, set up model with loss function
     # do 50 for convergence, do 5 to test code
-    epochs = 50
-    batch_size = 64
     model.compile(optimizer="adam",
                 loss="sparse_categorical_crossentropy",
                 metrics=["accuracy"])
@@ -206,4 +206,29 @@ if __name__ == '__main__':
     #####################################################################
 
 
+    # Convert the model to the TensorFlow Lite format without quantization
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model = converter.convert()
+
+    tflite_model_path = model_base_dir + '/model.tflite'
+
+    # Save the model to disk
+    open(tflite_model_path, "wb").write(tflite_model)
+
+    # Convert the model to the TensorFlow Lite format with quantization
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    tflite_model = converter.convert()
+
+    tflite_quantized_model_path = model_base_dir + '/model_quantized.tflite'
+
+    # Save the model to disk
+    open(tflite_quantized_model_path, "wb").write(tflite_model)
+
+    basic_model_size = os.path.getsize(tflite_model_path) / 1024.0
+    print("Basic model is %d Kilobytes" % basic_model_size)
+    quantized_model_size = os.path.getsize(tflite_quantized_model_path) / 1024.0
+    print("Quantized model is %d Kilobytes" % quantized_model_size)
+    difference = basic_model_size - quantized_model_size
+    print("Difference is %d Kilobytes" % difference)
 
