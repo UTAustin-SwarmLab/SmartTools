@@ -1,5 +1,16 @@
 import tensorflow as tf
+import pandas
+import sys,os
+from collections import OrderedDict
+import argparse
+import numpy as np
+import datetime
 
+from plotting_utils import *
+from textfile_utils import *
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import tensorflow as tf
+from utils_tensorflow import *
 
 def calculate_model_size(model):
   print(model.summary())
@@ -16,15 +27,14 @@ def calculate_model_size(model):
 def build_1D_CNN(model_base_dir, model_name = '1DCNN', num_sensors = 11, num_features = 10, num_outputs = 4):
 
   """Builds a convolutional neural network in Keras."""
-    model = tf.keras.Sequential([
+  model = tf.keras.Sequential([
         tf.keras.layers.Conv1D(56, 3, activation='relu', input_shape=(num_sensors, num_features)),
         tf.keras.layers.MaxPooling1D(2, 2),
         tf.keras.layers.Conv1D(56, 3, activation='relu'),
         tf.keras.layers.MaxPooling1D(2, 2),
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(784, activation='relu'),
-        tf.keras.layers.Dense(num_outputs, activation='softmax')
-    ])
+        tf.keras.layers.Dense(num_outputs, activation='softmax')])
 
   model_path = None
 

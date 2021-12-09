@@ -171,12 +171,14 @@ if __name__ == '__main__':
     csv_logger = tf.keras.callbacks.CSVLogger(base_dir + '/training.log')
 
     # how long we train, set up model with loss function
+    # do 50 for convergence, do 5 to test code
     epochs = 50
     batch_size = 64
     model.compile(optimizer="adam",
                 loss="sparse_categorical_crossentropy",
                 metrics=["accuracy"])
 
+    # needs a bit more debugging for confusion matrix (later)
     #test_labels = np.zeros(test_len)
     #idx = 0
     #for data, label in test_data:  # pylint: disable=unused-variable
@@ -189,11 +191,19 @@ if __name__ == '__main__':
             validation_data=val_data,
             callbacks=[tensorboard_callback, csv_logger])
 
+    # test loss, test accuracy
     loss, acc = model.evaluate(test_data)
     pred = np.argmax(model.predict(test_data), axis=1)
 
+    # needs syntax debugging
     #confusion = tf.math.confusion_matrix(labels=tf.constant(test_labels),
     #                                   predictions=tf.constant(pred),
     #                                   num_classes=4)
     #print(confusion)
     print("Test Loss {}, Test Accuracy {}".format(loss, acc))
+
+    # now lets quantize the model for the arduino
+    #####################################################################
+
+
+
