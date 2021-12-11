@@ -1,5 +1,6 @@
 '''
-    Use a neural network in pytorch to classify different activity styles
+    Once we have a trained neural network in tf lite,
+    test that quantization and scaling work
 
 '''
 
@@ -23,17 +24,7 @@ from textfile_utils import *
 import tensorflow as tf
 from utils_tensorflow import *
 
-# where the tensorflow logs are placed
-# helper function to extract key columns from the pandas dataframes
-
-
-# how many samples are taken at once for training
-BATCH_SIZE = 64
-SHUFFLE_BUFFER_SIZE = 100
-
-epochs = 50
-
-# NOTE: data will be re-organized to size:
+# data is re-organized to size:
 # BATCH_SIZE x NUM_SENSORS x NUM_FEATURES
 # view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
 
@@ -41,11 +32,8 @@ if __name__ == '__main__':
 
     # now build the CNN model
     base_dir = SCRATCH_DIR + '/tensorflow_classifier/'
-    remove_and_create_dir(base_dir)
 
     model_base_dir = base_dir + '/tf_model/'
-    remove_and_create_dir(model_base_dir)
-
 
     # Pull arguments from command line.
     parser = argparse.ArgumentParser(description='plot sensor data')
@@ -99,22 +87,19 @@ if __name__ == '__main__':
     # SCALE THE DATA and create a Tensorflow DataSet
     # analagous to a Pytorch data loader
     # KEY POINT: we manually re-scale without sklearn so we know how to replicate the scaling in C on the Arduino
-    # we store the scaling quantiles in train_quantile_csv, saved later
+    # we have already stored the scaling quantiles in train_quantile_csv
+
+    # retrieve the quantiles from this file for normalization, this was computed during training
+    quantile_list = [.001, 0.25, 0.5, 0.75, 0.999]
+    train_quantile_csv = base_dir + '/train_normalization_quantiles.csv'
+    train_quantile_df = pandas.read_csv(train_quantile_csv)
+
+    train_quantile_df = train_quantile_df.set_index(train_quantile_df.columns[0])
 
     for data_split, data_df in train_test_val_df_dict.items():
 
+        # load raw data from csvs
         data_x_np, data_y_np, data_x_df, data_y_df = get_xy_numpy(data_df, x_features_columns, y_features_columns=y_features_columns)
-
-        quantile_list = [.001, 0.25, 0.5, 0.75, 0.999]
-
-        # only for training data, get the above quantiles for ALL COLUMNS and save to a csv
-        if data_split == 'train':
-            # do not use sklearn, instead save the following quantiles of data to a dataframe and store as a csv
-            train_quantile_df = data_x_df.quantile(quantile_list)
-
-            train_quantile_csv = base_dir + '/train_normalization_quantiles.csv'
-
-            train_quantile_df.to_csv(train_quantile_csv)
 
         # for all data, scale each column using the same PER-COLUMN scaling as the training data for uniformity
         normalized_data_x_df = data_x_df.copy()
@@ -148,87 +133,9 @@ if __name__ == '__main__':
         # load the tensorflow dataset
         tf_dataset_dict[data_split] = tf_dataset
 
-
-
-
-    # we now have all the datasets and dataloaders in TENSORFLOW format
-    train_data = tf_dataset_dict['train'].shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
-    val_data = tf_dataset_dict['val'].batch(BATCH_SIZE)
-    test_data = tf_dataset_dict['test'].batch(BATCH_SIZE)
-
-    # find the number of batches in the TESTING dataset
-    # this is useful later
-    test_len = 0
-    for batch in test_data:
-        test_len += 1
-
-
-    # 1D CNN model
-    model, model_path = build_1D_CNN(model_base_dir, model_name = '1DCNN', num_sensors = num_sensors, num_features = num_features, num_outputs = num_activities)
-
-    # How many KB is the final tensorflow model?
-    model_size = calculate_model_size(model)
-
-    # when we train, we save a csv of the training accuracy/loss
-    csv_logger = tf.keras.callbacks.CSVLogger(base_dir + '/training.log')
-
-    # how long we train, set up model with loss function
-    # do 50 for convergence, do 5 to test code
-    model.compile(optimizer="adam",
-                loss="sparse_categorical_crossentropy",
-                metrics=["accuracy"])
-
-    # needs a bit more debugging for confusion matrix (later)
-    #test_labels = np.zeros(test_len)
-    #idx = 0
-    #for data, label in test_data:  # pylint: disable=unused-variable
-    #    test_labels[idx] = label.numpy()
-    #    idx += 1
-
-    # now, finally start training
-    model.fit(train_data,
-            epochs=epochs,
-            validation_data=val_data,
-            callbacks=[csv_logger])
-
-    # test loss, test accuracy
-    loss, acc = model.evaluate(test_data)
-    pred = np.argmax(model.predict(test_data), axis=1)
-
-    # needs syntax debugging
-    #confusion = tf.math.confusion_matrix(labels=tf.constant(test_labels),
-    #                                   predictions=tf.constant(pred),
-    #                                   num_classes=4)
-    #print(confusion)
-    print("Test Loss {}, Test Accuracy {}".format(loss, acc))
-
-    # now lets quantize the model for the arduino
-    #####################################################################
-
-
-    # Convert the model to the TensorFlow Lite format without quantization
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    tflite_model = converter.convert()
-
-    tflite_model_path = model_base_dir + '/model.tflite'
-
-    # Save the model to disk
-    open(tflite_model_path, "wb").write(tflite_model)
-
-    # Convert the model to the TensorFlow Lite format with quantization
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    tflite_model = converter.convert()
+	# now we have a numpy array of input data x and labels y
+	# let us try a few examples and see if we get correct results from the pretrained network
 
     tflite_quantized_model_path = model_base_dir + '/model_quantized.tflite'
-
-    # Save the model to disk
-    open(tflite_quantized_model_path, "wb").write(tflite_model)
-
-    basic_model_size = os.path.getsize(tflite_model_path) / 1024.0
-    print("Basic model is %d Kilobytes" % basic_model_size)
-    quantized_model_size = os.path.getsize(tflite_quantized_model_path) / 1024.0
-    print("Quantized model is %d Kilobytes" % quantized_model_size)
-    difference = basic_model_size - quantized_model_size
-    print("Difference is %d Kilobytes" % difference)
+    tflite_model_path = model_base_dir + '/model.tflite'
 
