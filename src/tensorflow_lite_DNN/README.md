@@ -40,8 +40,11 @@ For example:
 ### This will use training utils stored in
 `utils_tensorflow.py`
 
-### Finally, plot loss
+### Next, plot loss
 `plot_loss.py`
+
+### KEY STEP: TEST the quantized models and write results to a file
+`python3 -i test_pretrained_model_and_scaling.py`
 
 This command will store plots and the trained model in `${SMART_TOOLS_ROOT_DIR}/scratch/tensorflow_classifier/`
 

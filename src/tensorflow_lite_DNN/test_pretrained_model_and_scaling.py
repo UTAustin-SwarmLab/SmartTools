@@ -112,6 +112,7 @@ if __name__ == '__main__':
 
     train_quantile_df = train_quantile_df.set_index(train_quantile_df.columns[0])
 
+    # assemble all data into normalized numpy arrays as usual
     for data_split, data_df in train_test_val_df_dict.items():
 
         # load raw data from csvs
@@ -150,20 +151,21 @@ if __name__ == '__main__':
         tf_dataset_dict[data_split] = tf_dataset
 
     # now we have a numpy array of input data x and labels y
-    # let us try a few examples and see if we get correct results from the pretrained network
+    # lets evaluate the pretrained TFLITE models and write the results to a file
 
     tflite_quantized_model_path = model_base_dir + '/model_quantized.tflite'
     tflite_model_path = model_base_dir + '/model.tflite'
 
-
+    # compare both our quantized and float models
     model_type_list = [('TFLite Quantized', tflite_quantized_model_path), ('TFLite Float', tflite_model_path)]
 
     # now test the model on train, val, test and write results to a file
-
+    # saves all our results in a pandas df
     total_df = pandas.DataFrame()
 
     for model_type, model_path in model_type_list:
 
+        # actually load the tflite model from disk
         interpreter, input_details, output_details, input_shape = load_trained_tflite_model(model_path)
 
         results_dict = OrderedDict()
@@ -175,26 +177,35 @@ if __name__ == '__main__':
 
             correct = 0
             total = 0
-
+            # loop through the appropriate dataset
             for i, batch_data in enumerate(tf_dataset):
 
+                # assemble the tensor in numpy
                 x_tensor = batch_data[0].numpy().astype(np.float32)
+                # now data is NUM_SENSORS X NUM_FEATURES
                 x_tensor = np.expand_dims(x_tensor, axis=0)
+                # this ensures its of size 1 X NUM_SENSORS X NUM_FEATURES [expand_dims adds the first 1 dimension]
+                # our pretrained network expects a batch dimension, so the 1 indicates a single example (batch of 1)
                 y_label_tensor = batch_data[1].numpy()
 
+                # actually call/invoke the network
                 interpreter.set_tensor(input_details[0]['index'], x_tensor)
                 interpreter.invoke()
 
                 # The function `get_tensor()` returns a copy of the tensor data.
                 # Use `tensor()` in order to get a pointer to the tensor.
                 output_data = interpreter.get_tensor(output_details[0]['index'])
+
+                # get the most likely prediction
                 preds = np.squeeze(output_data)
                 argmax_pred = np.argmax(preds)
 
+                # see if the argmax (most likely) prediction is correct
                 if (y_label_tensor == argmax_pred):
                     correct += 1
                 total += 1
 
+            # compute accuracy, save and log
             accuracy = float(correct)/float(total)
             print(' ')
             print('data_split: ', data_split)
