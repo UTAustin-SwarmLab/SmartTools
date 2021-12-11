@@ -98,3 +98,10 @@ Models are saved at `${SMART_TOOLS_ROOT_DIR}/`
 - Features: `[min, max, mean, kurt, sem, std, var, skew, mad, sum]`
 - Data Input to DNN: 
     - `11 x 10` NORMALIZED matrix  
+- For an example of normalization and testing TFLite models, see: 
+    - `python3 -i test_pretrained_model_and_scaling.py `
+- For a very simple example to run ANY single tensor through the DNN, try: 
+    - `python3 -i example_single_inference.py` 
+- For results on our data see: 
+    - `SmartTools/pretrained_models/tensorflow_classifier/results.csv`
+    - and `..normalization.csv`
