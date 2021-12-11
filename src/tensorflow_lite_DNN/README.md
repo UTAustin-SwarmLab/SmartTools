@@ -82,4 +82,16 @@ Models are saved at `${SMART_TOOLS_ROOT_DIR}/`
 
 - `normalized_x = (x - quantile_.001[x]) / (quantile_.999[x] - quantile_.001[x])`
 
+# List of Sensors and Features Expected in Order
+- 110 variable inputs
+- 11 sensors x 10 features
+- full list: 
 
+-  `['accX_min', 'accX_max', 'accX_mean', 'accX_kurt', 'accX_sem', 'accX_std', 'accX_var', 'accX_skew', 'accX_mad', 'accX_sum', 'accY_min', 'accY_max', 'accY_mean', 'accY_kurt', 'accY_sem', 'accY_std', 'accY_var', 'accY_skew', 'accY_mad', 'accY_sum', 'accZ_min', 'accZ_max', 'accZ_mean', 'accZ_kurt', 'accZ_sem', 'accZ_std', 'accZ_var', 'accZ_skew', 'accZ_mad', 'accZ_sum', 'wx_min', 'wx_max', 'wx_mean', 'wx_kurt', 'wx_sem', 'wx_std', 'wx_var', 'wx_skew', 'wx_mad', 'wx_sum', 'wy_min',
+    'wy_max', 'wy_mean', 'wy_kurt', 'wy_sem', 'wy_std', 'wy_var', 'wy_skew', 'wy_mad', 'wy_sum', 'wz_min', 'wz_max', 'wz_mean', 'wz_kurt', 'wz_sem', 'wz_std', 'wz_var', 'wz_skew', 'wz_mad', 'wz_sum', 'bx_min', 'bx_max', 'bx_mean', 'bx_kurt', 'bx_sem', 'bx_std', 'bx_var', 'bx_skew', 'bx_mad', 'bx_sum', 'by_min', 'by_max', 'by_mean', 'by_kurt', 'by_sem', 'by_std', 'by_var', 'by_skew', 'by_mad', 'by_sum', 'bz_min', 'bz_max', 'bz_mean', 'bz_kurt', 'bz_sem', 'bz_std', 'bz_var', 'bz_skew', 'bz_mad',
+    'bz_sum', 'Isens_min', 'Isens_max', 'Isens_mean', 'Isens_kurt', 'Isens_sem', 'Isens_std', 'Isens_var', 'Isens_skew', 'Isens_mad', 'Isens_sum', 'Srms_min', 'Srms_max', 'Srms_mean', 'Srms_kurt', 'Srms_sem', 'Srms_std', 'Srms_var', 'Srms_skew', 'Srms_mad', 'Srms_sum']`
+
+- Sensors: `[accX, accY, accZ, wx, wy, wz, bx, by, bz, Isens, Srms]`
+- Features: `[min, max, mean, kurt, sem, std, var, skew, mad, sum]`
+- Data Input to DNN: 
+    - `11 x 10` NORMALIZED matri  
