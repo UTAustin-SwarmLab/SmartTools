@@ -28,11 +28,27 @@ from utils_tensorflow import *
 # BATCH_SIZE x NUM_SENSORS x NUM_FEATURES
 # view this as an image with 1 channel, NUM_SENSORS x NUM_FEATURES size
 
+def load_trained_tflite_model(model_path):
+
+    # Load the TFLite model and allocate tensors.
+    interpreter = tf.lite.Interpreter(model_path)
+    interpreter.allocate_tensors()
+
+    # Get input and output tensors.
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    ################################################
+    # Test the model on random input data.
+    input_shape = input_details[0]['shape']
+
+    return interpreter, input_details, output_details, input_shape
+
+
 if __name__ == '__main__':
 
     # now build the CNN model
-    base_dir = SCRATCH_DIR + '/tensorflow_classifier/'
-
+    base_dir = SMART_TOOLS_ROOT_DIR + '/pretrained_models/tensorflow_classifier/'
     model_base_dir = base_dir + '/tf_model/'
 
     # Pull arguments from command line.
@@ -140,41 +156,18 @@ if __name__ == '__main__':
     tflite_model_path = model_base_dir + '/model.tflite'
 
 
-    # Load the TFLite model and allocate tensors.
-    interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
-    interpreter.allocate_tensors()
-
-    # Get input and output tensors.
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-
-    ################################################
-    # Test the model on random input data.
-    input_shape = input_details[0]['shape']
-
-    #N_trials = 10
-
-    #for i in range(N_trials):
-
-    #    input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
-    #    interpreter.set_tensor(input_details[0]['index'], input_data)
-
-    #    interpreter.invoke()
-
-    #    # The function `get_tensor()` returns a copy of the tensor data.
-    #    # Use `tensor()` in order to get a pointer to the tensor.
-    #    output_data = interpreter.get_tensor(output_details[0]['index'])
-    #    preds = np.squeeze(output_data)
-    #    argmax_pred = np.argmax(preds)
-
+    model_type_list = [('TFLite Quantized', tflite_quantized_model_path), ('TFLite Float', tflite_model_path)]
 
     # now test the model on train, val, test and write results to a file
-    ################################################
-    model_type_list = ['tflite_float']
 
-    for model_type in model_type_list:
+    total_df = pandas.DataFrame()
+
+    for model_type, model_path in model_type_list:
+
+        interpreter, input_details, output_details, input_shape = load_trained_tflite_model(model_path)
 
         results_dict = OrderedDict()
+
         for data_split in ['train', 'val', 'test']:
 
             # results entry should have: model_name, correct, total, accuracy
@@ -210,3 +203,10 @@ if __name__ == '__main__':
 
             results_entry = [model_type, correct, total, accuracy]
             results_dict[data_split] = results_entry
+
+        results_df = pandas.DataFrame.from_dict(results_dict,orient='index')
+        results_df.columns = ['Model Type', 'Correct', 'Total', 'Accuracy']
+        total_df = total_df.append(results_df)
+
+    total_df.to_csv(base_dir + '/results.csv')
+
