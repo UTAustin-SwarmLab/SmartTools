@@ -94,4 +94,4 @@ Models are saved at `${SMART_TOOLS_ROOT_DIR}/`
 - Sensors: `[accX, accY, accZ, wx, wy, wz, bx, by, bz, Isens, Srms]`
 - Features: `[min, max, mean, kurt, sem, std, var, skew, mad, sum]`
 - Data Input to DNN: 
-    - `11 x 10` NORMALIZED matri  
+    - `11 x 10` NORMALIZED matrix  
