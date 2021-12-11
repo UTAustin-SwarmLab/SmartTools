@@ -133,9 +133,80 @@ if __name__ == '__main__':
         # load the tensorflow dataset
         tf_dataset_dict[data_split] = tf_dataset
 
-	# now we have a numpy array of input data x and labels y
-	# let us try a few examples and see if we get correct results from the pretrained network
+    # now we have a numpy array of input data x and labels y
+    # let us try a few examples and see if we get correct results from the pretrained network
 
     tflite_quantized_model_path = model_base_dir + '/model_quantized.tflite'
     tflite_model_path = model_base_dir + '/model.tflite'
 
+
+    # Load the TFLite model and allocate tensors.
+    interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
+    interpreter.allocate_tensors()
+
+    # Get input and output tensors.
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    ################################################
+    # Test the model on random input data.
+    input_shape = input_details[0]['shape']
+
+    #N_trials = 10
+
+    #for i in range(N_trials):
+
+    #    input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
+    #    interpreter.set_tensor(input_details[0]['index'], input_data)
+
+    #    interpreter.invoke()
+
+    #    # The function `get_tensor()` returns a copy of the tensor data.
+    #    # Use `tensor()` in order to get a pointer to the tensor.
+    #    output_data = interpreter.get_tensor(output_details[0]['index'])
+    #    preds = np.squeeze(output_data)
+    #    argmax_pred = np.argmax(preds)
+
+
+    # now test the model on train, val, test and write results to a file
+    ################################################
+    model_type_list = ['tflite_float']
+
+    for model_type in model_type_list:
+
+        results_dict = OrderedDict()
+        for data_split in ['train', 'val', 'test']:
+
+            # results entry should have: model_name, correct, total, accuracy
+            tf_dataset = tf_dataset_dict[data_split]
+
+            correct = 0
+            total = 0
+
+            for i, batch_data in enumerate(tf_dataset):
+
+                x_tensor = batch_data[0].numpy().astype(np.float32)
+                x_tensor = np.expand_dims(x_tensor, axis=0)
+                y_label_tensor = batch_data[1].numpy()
+
+                interpreter.set_tensor(input_details[0]['index'], x_tensor)
+                interpreter.invoke()
+
+                # The function `get_tensor()` returns a copy of the tensor data.
+                # Use `tensor()` in order to get a pointer to the tensor.
+                output_data = interpreter.get_tensor(output_details[0]['index'])
+                preds = np.squeeze(output_data)
+                argmax_pred = np.argmax(preds)
+
+                if (y_label_tensor == argmax_pred):
+                    correct += 1
+                total += 1
+
+            accuracy = float(correct)/float(total)
+            print(' ')
+            print('data_split: ', data_split)
+            print('accuracy: ', float(correct)/float(total))
+            print(' ')
+
+            results_entry = [model_type, correct, total, accuracy]
+            results_dict[data_split] = results_entry
