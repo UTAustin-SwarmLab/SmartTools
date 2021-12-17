@@ -51,11 +51,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='plot sensor data')
 
     # where to read data
-    parser.add_argument('--train_csv', type=str, default= SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Train_Xy_Matrix.csv')
-
+    # update for P_OoD
+    #parser.add_argument('--train_csv', type=str, default= SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Train_Xy_Matrix.csv')
+    parser.add_argument('--train_csv', type=str, default= SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/P_OoD_train.csv')
     parser.add_argument('--val_csv', type=str, default= SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Validate_Xy_Matrix.csv')
 
-    parser.add_argument('--test_csv', type=str, default=SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Test_Xy_Matrix.csv')
+    # UPDATE FOR P_OoD
+    #parser.add_argument('--test_csv', type=str, default=SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/OL50_10secframe_Proccessed_Test_Xy_Matrix.csv')
+    parser.add_argument('--test_csv', type=str, default=SMART_TOOLS_ROOT_DIR + '/processed_data/Feature_Processed_Data/P_OoD_test.csv')
 
     args = parser.parse_args()
 
@@ -72,7 +75,7 @@ if __name__ == '__main__':
     ########################################################################
 
     # get all columns that are inputs to our model
-    x_features_columns = [colname for colname in list(train_df) if colname not in ['Unnamed: 0', 'Activity', 'Subject Number', 'Trial']]
+    x_features_columns = [colname for colname in list(train_df) if colname not in ['Unnamed: 0', 'Activity', 'Subject Number', 'Trial', 'Unnamed: 0.1']]
 
     # try different y columns
     # first, how well can we predict the activity?
@@ -106,6 +109,7 @@ if __name__ == '__main__':
         data_x_np, data_y_np, data_x_df, data_y_df = get_xy_numpy(data_df, x_features_columns, y_features_columns=y_features_columns)
 
         quantile_list = [.001, 0.25, 0.5, 0.75, 0.999]
+
 
         # only for training data, get the above quantiles for ALL COLUMNS and save to a csv
         if data_split == 'train':
