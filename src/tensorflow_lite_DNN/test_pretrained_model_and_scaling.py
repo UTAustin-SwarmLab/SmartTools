@@ -48,7 +48,7 @@ def load_trained_tflite_model(model_path):
 if __name__ == '__main__':
 
     # now build the CNN model
-    base_dir = SMART_TOOLS_ROOT_DIR + '/pretrained_models/tensorflow_classifier/'
+    base_dir = SMART_TOOLS_ROOT_DIR + '/pretrained_models/P_OoD/'
     model_base_dir = base_dir + '/tf_model/'
 
     # Pull arguments from command line.
