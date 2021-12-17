@@ -1,4 +1,7 @@
 # SmartTools
+Train a model for activity classification of rotary tool usage on an Arduino. 
+
+Has data, pre-trained TFLite Models, etc.
 
 ## Requirements
 
